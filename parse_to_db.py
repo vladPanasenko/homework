@@ -1,10 +1,10 @@
 import random
 import time
-from csv import DictWriter
 from requests_html import HTMLSession
-from sqlite3 import *
+import sqlite3
 
 SESSION = HTMLSession()
+conn = sqlite3.connect('example.db')
 
 
 def parser_links_from_category_page():
@@ -18,83 +18,26 @@ def parser_links_from_category_page():
 
     return urls_list
 
+
 def get_information_from_urls():
     urls_to_get_info = parser_links_from_category_page()
-    data_from_urls_list = []
+
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS urls_data
+                 (text_from_url text, price text)''')
 
     for link in urls_to_get_info:
         response = SESSION.get(link)
         text_xpath = response.html.xpath('//div[@class="offer-titlebox"]/h1/text()')
         price_xpath = response.html.xpath('//div[@class="price-label"]/strong/text()')
-        data_from_urls_list.append(text_xpath)
-        data_from_urls_list.append(price_xpath)
-        print(data_from_urls_list)
+        c.execute("INSERT INTO urls_data VALUES (?, ?);", (str(text_xpath).strip(), str(price_xpath).strip()))
+        conn.commit()
         time.sleep(random.randint(1, 5))
+        print(str(text_xpath) + "\t" + str(price_xpath))
 
-    return data_from_urls_list
+    c.close()
+    conn.close()
 
-get_information_from_urls()
 
-
-    # for url in category_urls:
-    #     response = None
-    #     prox = None
-    #
-    #     for _ in range(5):
-    #         prox = random.choice(proxies_list)
-    #         proxies = {'http': prox, 'https': prox}
-    #         headers = {'User-Agent': random.choice(user_agents)}
-    #         try:
-    #             response = SESSION.get(url, proxies=proxies, headers=headers, timeout=4)
-    #             if response.status_code == 200:
-    #                 break
-    #             else:
-    #                 response = None
-    #         except Exception as e:
-    #             print(e, type(e))
-    #             response = None
-    #
-    #     if not response:
-    #         print('За 5 попыток ответ не пришел')
-    #         continue
-    #
-    #     print('Запрос обработан верно. Прокси:', prox)
-    #
-    #     links_xpath = '//div/h3/a/@href'
-    #     text_xpath = '//div/h3/a/strong/text()'
-    #     price_xpath = '//div//p[@class="price"]/strong/text()'
-    #     city_xpath = '//div//small[@class="breadcrumb x-normal"][1]/span'
-    #     time_xpath = '//div//small[@class="breadcrumb x-normal"][2]/span'
-    #
-    #     ad_links_list = response.html.xpath(links_xpath)
-    #     name_list = response.html.xpath(text_xpath)
-    #     price_list = response.html.xpath(price_xpath)
-    #     city_list = response.html.xpath(city_xpath)
-    #     time_list = response.html.xpath(time_xpath)
-    #
-    #     price_list_fixed = []
-    #     for price in price_list:
-    #         try:
-    #             fixed_pr = float(price.replace(' грн.', '').replace(' ', ''))
-    #         except Exception as e:
-    #             print(e)
-    #             fixed_pr = '---'
-    #         price_list_fixed.append(fixed_pr)
-    #
-    #     city_list = [elem.text for elem in city_list]
-    #     time_list = [elem.text for elem in time_list]
-    #
-    #     for i in range(len(ad_links_list)):
-    #
-    #         ad = {
-    #             'name': name_list[i],
-    #             'link': ad_links_list[i],
-    #             'price': price_list_fixed[i],
-    #             'city': city_list[i],
-    #             'time': time_list[i],
-    #             'more_info': parser_item(ad_links_list[i])
-    #         }
-    #
-    #         result.append(ad)
-    #
-    # return result
+if __name__ == "__main__":
+    get_information_from_urls()
