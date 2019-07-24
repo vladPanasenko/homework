@@ -20,15 +20,18 @@ def parser_links_from_category_page():
 
 def get_information_from_urls():
     urls_to_get_info = parser_links_from_category_page()
-    text_xpath = '//div/h3/a/strong/text()'
-    price_xpath = '//div//p[@class="price"]/strong/text()'
-    city_xpath = '//div//small[@class="breadcrumb x-normal"][1]/span'
+    data_from_urls_list = []
 
     for link in urls_to_get_info:
         response = SESSION.get(link)
+        text_xpath = response.html.xpath('//div[@class="offer-titlebox"]/h1/text()')
+        price_xpath = response.html.xpath('//div[@class="price-label"]/strong/text()')
+        data_from_urls_list.append(text_xpath)
+        data_from_urls_list.append(price_xpath)
+        print(data_from_urls_list)
         time.sleep(random.randint(1, 5))
-        print(response)
 
+    return data_from_urls_list
 
 get_information_from_urls()
 
