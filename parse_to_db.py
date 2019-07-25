@@ -1,10 +1,11 @@
 import random
 import time
 from requests_html import HTMLSession
+import re
 import sqlite3
 
 SESSION = HTMLSession()
-conn = sqlite3.connect('example.db')
+conn = sqlite3.connect('hw_part_1.db')
 
 
 def parser_links_from_category_page():
@@ -26,14 +27,19 @@ def get_information_from_urls():
     c.execute('''CREATE TABLE IF NOT EXISTS urls_data
                  (text_from_url text, price text)''')
 
+    clean_text = str
+
     for link in urls_to_get_info:
         response = SESSION.get(link)
         text_xpath = response.html.xpath('//div[@class="offer-titlebox"]/h1/text()')
         price_xpath = response.html.xpath('//div[@class="price-label"]/strong/text()')
-        c.execute("INSERT INTO urls_data VALUES (?, ?);", (str(text_xpath).strip(), str(price_xpath).strip()))
+
+        for text in text_xpath:
+            clean_text = text.strip()
+
+        c.execute("INSERT INTO urls_data VALUES (?, ?);", (clean_text, (re.sub('[\'\.\[\]]', '', str(price_xpath)))))
         conn.commit()
         time.sleep(random.randint(1, 5))
-        print(str(text_xpath) + "\t" + str(price_xpath))
 
     c.close()
     conn.close()
