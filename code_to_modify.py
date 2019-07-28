@@ -46,25 +46,28 @@ def category_worker(qu):
             date = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             links = response.html.xpath('//div[@class="r"]/a[1]/@href')
 
-            for link in links:
-                found = False
+            found = False
+
+            for position, link in enumerate(links, start=1):
 
                 if DOMAIN in link:
                     ad_dict = {
                         'link': link,
                         'date': date,
+                        'position': position,
+                        'keyword': qu
                     }
                     Top.create(**ad_dict)
                     found = True
-                    break
 
-                if not found:
-                    ad_dict = {
-                        'link': 'no position',
-                        'date': date,
-                    }
-                    Top.create(**ad_dict)
-
+            if not found:
+                ad_dict = {
+                    'link': 'not found',
+                    'date': date,
+                    'position': 0,
+                    'keyword': qu
+                }
+                Top.create(**ad_dict)
         except Exception as e:
             print(e, type(e))
             qu.put(url)
@@ -84,6 +87,7 @@ def main():
         for keyword in keywords_list:
             cat_url = category_base_url.format(keyword)
             category_queue.put(cat_url)
+
 
     for i in range(workers_count):
         tread = Thread(

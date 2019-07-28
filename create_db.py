@@ -9,9 +9,12 @@ db = SqliteDatabase('top_by_keywords.db')
 #     position = IntegerField()
 #     date = TextField()
 
+
 class Top(Model):
     link = TextField()
     date = TextField()
+    position = IntegerField()
+    keyword = TextField()
 
     class Meta:
         database = db
