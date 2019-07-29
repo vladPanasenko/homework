@@ -1,11 +1,11 @@
+# DONE WITHOUT KEYWORD RECORD DO THE DATABASE
+
 import random
 import datetime
 from queue import Queue
 from threading import Lock, Thread
-# from multiprocessing import Process
-# from concurrent.futures import ThreadPoolExecutor
 from requests_html import HTMLSession
-from create_db import Top, Keyword
+from create_db import Top
 
 DOMAIN = 'grademiners.com'
 
@@ -85,21 +85,12 @@ def main():
             cat_url = category_base_url.format(keyword)
             category_queue.put(cat_url)
 
-            keyword_dict = {
-                'keyword': keyword
-            }
-            Keyword.create(**keyword_dict)
-
     for i in range(workers_count):
         tread = Thread(
             target=category_worker,
             args=(category_queue, )
         )
         tread.start()
-
-    # with ThreadPoolExecutor(max_workers=workers_count) as executor:
-    #     for _ in range(workers_count):
-    #         executor.submit(category_worker, category_queue)
 
 
 if __name__ == '__main__':
