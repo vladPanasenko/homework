@@ -7,7 +7,7 @@ class Top(Model):
     link = TextField()
     date = TextField()
     position = IntegerField()
-    # keyword = ForeignKeyField(Keyword)
+    keyword = TextField()
 
     class Meta:
         database = db
