@@ -5,7 +5,7 @@ from threading import Lock, Thread
 # from multiprocessing import Process
 # from concurrent.futures import ThreadPoolExecutor
 from requests_html import HTMLSession
-from create_db import Top
+from create_db import Top, Keyword
 
 DOMAIN = 'grademiners.com'
 
@@ -14,7 +14,6 @@ with open('ua.txt', 'r', encoding='utf-8') as f:
 
 with open('proxylist.txt', 'r', encoding='utf-8') as f:
     proxies_list = f.read().split('\n')
-
 
 locker = Lock()
 
@@ -55,7 +54,6 @@ def category_worker(qu):
                         'link': link,
                         'date': date,
                         'position': position,
-                        'keyword': qu
                     }
                     Top.create(**ad_dict)
                     found = True
@@ -65,7 +63,6 @@ def category_worker(qu):
                     'link': 'not found',
                     'date': date,
                     'position': 0,
-                    'keyword': qu
                 }
                 Top.create(**ad_dict)
         except Exception as e:
@@ -88,6 +85,10 @@ def main():
             cat_url = category_base_url.format(keyword)
             category_queue.put(cat_url)
 
+            keyword_dict = {
+                'keyword': keyword
+            }
+            Keyword.create(**keyword_dict)
 
     for i in range(workers_count):
         tread = Thread(
